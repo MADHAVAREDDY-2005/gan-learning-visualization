@@ -103,7 +103,7 @@ for epoch in range(NUM_EPOCHS):
 - **Loss Function:** Binary Cross Entropy Loss (BCELoss)  
 - **Optimizers:** Adam Optimizer (for both Generator and Discriminator)  
 - **Learning Rate:** 0.001
-Used BCELoss for binary classification (real vs fake) and Adam optimizer for efficient training.
+- Used BCELoss for binary classification (real vs fake) and Adam optimizer for efficient training.
 ### 🔧 Code Snippet
 ```py
 LR = 0.001
