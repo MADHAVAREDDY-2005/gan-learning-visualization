@@ -24,9 +24,96 @@ Both models compete and improve together.
 - Trained on a **2D heart-shaped dataset**
 - Outputs captured at different epochs
 
+## 📊 Data Generation
+```py
+#training data
+TRAIN_DATA_COUNT = 1024
+theta = np.array([uniform(0, 2 * np.pi) for _ in range(TRAIN_DATA_COUNT)])
+# Heart shape dataset
+x = 16 * ( np.sin(theta) ** 3 )
+y = 13 * np.cos(theta) - 5 * np.cos(2*theta) - 2 * np.cos(3*theta) - np.cos(4*theta)
+sns.scatterplot(x=x, y=y)
+```
 ---
 
-## 📊 Training Progress
+## 🧠 GAN Architecture
+
+```py
+# Discriminator
+discriminator=nn.Sequential(
+    nn.Linear(2, 256),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(256,128),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(128,64),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(64,1),
+    nn.Sigmoid()
+)
+# Generator
+generator=nn.Sequential(
+    nn.Linear(2, 16),
+    nn.ReLU(),
+    nn.Linear(16,64),
+    nn.ReLU(),
+    nn.Linear(64,2)
+)
+```
+
+## 📊 Training Process
+```py
+for epoch in range(NUM_EPOCHS):
+    for n, (real_samples, _) in enumerate(train_loader):
+
+        # Data for training the discriminator
+        real_samples_labels = torch.ones((BATCH_SIZE, 1))
+        latent_space_samples = torch.randn((BATCH_SIZE, 2))
+        generated_samples = generator(latent_space_samples)
+        generated_samples_labels = torch.zeros((BATCH_SIZE, 1))
+
+        all_samples = torch.cat((real_samples, generated_samples), dim=0)
+        all_samples_labels = torch.cat((real_samples_labels, generated_samples_labels), dim=0)
+
+        # Train discriminator
+        if epoch % 2 == 0:
+            discriminator.zero_grad()
+            output_discriminator = discriminator(all_samples)
+            loss_discriminator = loss_function(output_discriminator, all_samples_labels)
+            loss_discriminator.backward()
+            optimizer_discriminator.step()
+
+        # Train generator
+        if epoch % 2 == 1:
+            generator.zero_grad()
+            latent_space_samples = torch.randn((BATCH_SIZE, 2))
+            generated_samples = generator(latent_space_samples)
+            output_discriminator_generator = discriminator(generated_samples)
+            loss_generator = loss_function(output_discriminator_generator, real_samples_labels)
+            loss_generator.backward()
+            optimizer_generator.step()
+
+```
+
+
+## ⚙️ Training Setup
+
+- **Loss Function:** Binary Cross Entropy Loss (BCELoss)  
+- **Optimizers:** Adam Optimizer (for both Generator and Discriminator)  
+- **Learning Rate:** 0.001
+Used BCELoss for binary classification (real vs fake) and Adam optimizer for efficient training.
+### 🔧 Code Snippet
+```py
+LR = 0.001
+NUM_EPOCHS = 4000 
+loss_function = nn.BCELoss()
+
+optimizer_discriminator = torch.optim.Adam(discriminator.parameters())
+optimizer_generator = torch.optim.Adam(generator.parameters())
+```
+
 
 ### 🔹 Original Training Data
 <img width="599" height="605" alt="image" src="https://github.com/user-attachments/assets/ba5907dd-a4af-49a1-9150-b99e8516d69e" />
